@@ -1,9 +1,10 @@
 import Tetris
 import Control.Monad (mapM_)
+type Test t = (t,t)
 
 main :: IO ()
 main = do
-  runTests rotationTests >> runTests drawTests
+  runTests rotationTests
 
 runTests :: (Eq a, Show a) => [(a,a)] -> IO ()
 runTests = mapM_ (\(expect, expr)-> assert expect expr)
@@ -13,20 +14,17 @@ runTests = mapM_ (\(expect, expr)-> assert expect expr)
                           then return ()
                           else error ("\nexpected: " ++ (show expected) ++
                                       "\ngot     : " ++ (show got) ++ "\n")
-rotationTests :: [(Rotation, Rotation)]
+rotationTests :: [Test BlockDrawing]
 rotationTests =
   [
-   (Deg0, mkRotation 0)
-  ,(Deg90, mkRotation 1)
-  ,(Deg180, mkRotation 2)
-  ,(Deg270, mkRotation 3)
-  ,(Deg0, mkRotation 4)]
-
-drawTests :: [(BlockDrawing, BlockDrawing)]
-drawTests =
-  [
-   (drawBlock J, rotate (mkRotation 0) (drawBlock J))
-  ,([[On, Of, Of], [On, On, On]], rotate (mkRotation 1) (drawBlock J))
-  ,([[On, On], [On, Of], [On, Of]], rotate (mkRotation 2) (drawBlock J))
-  ,([[On, On, On], [Of, Of, On]], rotate (mkRotation 3) (drawBlock J))
+   (drawBlock J, rotate 0 J)
+  ,([[On, On, On], [Of, Of, On]], rotate 1 J)
+  ,([[On, On], [On, Of], [On, Of]], rotate 2 J)
+  ,([[On, Of, Of], [On, On, On]], rotate 3 J)
+  ,(drawBlock J, rotate 4 J)
+  ,(rotate (-1) J, rotate 3 J)
+  ,(rotate (-2) J, rotate 2 J)
+  ,(rotate (-3) J, rotate 1 J)
+  ,(rotate (-4) J, rotate 0 J)
+  ,(rotate (-8) J, rotate 8 J)
   ]

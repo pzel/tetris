@@ -1,12 +1,12 @@
 module Tetris
   (Block(..)
   ,BlockDrawing(..)
-  ,Rotation(..)
   ,Pixel(..)
   ,draw
   ,drawBlock
-  ,mkRotation
   ,rotate
+  ,rotateOnce
+  ,composeN
   ) where
 
 import Data.List (transpose)
@@ -14,7 +14,6 @@ import Data.List (transpose)
 data Block = O | L | J | I | T | S | Z deriving (Eq,Show)
 data Pixel = On | Of deriving (Eq, Show)
 type BlockDrawing = [[Pixel]]
-data Rotation = Deg0 | Deg90 | Deg180 | Deg270 deriving (Eq,Show)
 
 draw :: BlockDrawing -> String
 draw b = concatMap showRow b
@@ -24,18 +23,17 @@ draw b = concatMap showRow b
       drawPixel On = "#"
       drawPixel Of = " "
 
-mkRotation :: (Integral a) => a -> Rotation
-mkRotation n = case fromIntegral $ n `mod` 4
-               of 0 -> Deg0
-                  1 -> Deg90
-                  2 -> Deg180
-                  3 -> Deg270
+rotate :: Int -> Block -> BlockDrawing
+rotate n b = composeN (normalize n) rotateOnce (drawBlock b) where
+  normalize n = ((n `mod` 4) + 4) `mod` 4
 
-rotate :: Rotation -> BlockDrawing -> BlockDrawing
-rotate Deg0 b = b
-rotate Deg90 b = (transpose . reverse) b
-rotate Deg180 b = reverse (map reverse b)
-rotate Deg270 b = rotate Deg90 (rotate Deg180 b)
+-- Will truncate all to shortest sub-list, like zip
+rotateOnce :: (Eq a) => [[a]] -> [[a]]
+rotateOnce a = if [] `elem` a then []
+           else map last a : rotateOnce (map init a)
+
+composeN :: Int -> (a -> a) -> (a -> a)
+composeN n fun = foldr (.) id (replicate n fun)
 
 drawBlock :: Block -> BlockDrawing
 drawBlock O = [[On,On], [On,On]]
