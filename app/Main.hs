@@ -67,7 +67,7 @@ updateInput _ g = g
 drawGame :: Game -> IO ()
 drawGame g@Game{..} = do
   clearTerm
-  putStrLn $ (prefixX posX) $ (prefixY posY) $ (draw (rotate rotation block))
+  putStrLn $ prefixX posX $ prefixY posY $ draw $ rotate rotation block
 
 getPlayerInput :: TVar (Maybe Char) -> IO (Maybe Char)
 getPlayerInput inputSource = do
@@ -80,9 +80,9 @@ inputLoop :: TVar (Maybe Char) -> IO ()
 inputLoop input =
   getChar >>= atomically . writeTVar input . Just >> inputLoop input
 
-clearTerm :: IO ()
-clearTerm = putStrLn (chr 27 : "[2J") >> putStr (chr 27 : "[H")
-
+clearTerm, hideCursor, homeCursor :: IO ()
+clearTerm = putStrLn (chr 27 : "[2J") >> homeCursor
+homeCursor = putStr (chr 27 : "[H")
 hideCursor = putStr (chr 27 : "[?25l")
 
 prefixY :: Integer -> String -> String
