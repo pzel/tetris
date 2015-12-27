@@ -9,23 +9,22 @@ module Tetris
   ,composeN
   ) where
 
-import Data.List (transpose)
-
 data Block = O | L | J | I | T | S | Z deriving (Eq,Show)
 data Pixel = On | Of deriving (Eq, Show)
 type BlockDrawing = [[Pixel]]
 
 draw :: BlockDrawing -> String
-draw b = concatMap showRow b
+draw b = concatMap drawRow b
     where
-      showRow :: [Pixel] -> String
-      showRow pixels = concatMap drawPixel pixels ++ "\n"
+      drawRow :: [Pixel] -> String
+      drawRow pixels = concatMap drawPixel pixels ++ "\n"
       drawPixel On = "#"
       drawPixel Of = " "
 
-rotate :: Int -> Block -> BlockDrawing
+rotate :: Integer -> Block -> BlockDrawing
 rotate n b = composeN (normalize n) rotateOnce (drawBlock b) where
-  normalize n = ((n `mod` 4) + 4) `mod` 4
+  normalize :: (Integral a) => a -> Int
+  normalize n = ((fromIntegral n `mod` 4) + 4) `mod` 4
 
 -- Will truncate all to shortest sub-list, like zip
 rotateOnce :: (Eq a) => [[a]] -> [[a]]

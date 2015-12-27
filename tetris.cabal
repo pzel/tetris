@@ -18,6 +18,7 @@ library
   exposed-modules:     Tetris
   build-depends:       base >= 4.7 && < 5
                      , process
+                     , stm
   default-language:    Haskell2010
 
 executable tetris-exe
@@ -27,6 +28,7 @@ executable tetris-exe
   build-depends:       base
                      , tetris
                      , process
+                     , stm
   default-language:    Haskell2010
 
 test-suite tetris-test
