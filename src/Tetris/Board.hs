@@ -6,12 +6,13 @@ module Tetris.Board
   ,Cell
   ,board
   ,blocks
+  ,clearLines
   ,empty
   ,full
   ,overlapsAt
+  ,rotated
   ,showBoard
   ,spliceBoardAt
-  ,rotated
   ) where
 
 import Data.List (cycle)
@@ -66,6 +67,17 @@ boardRows b = mapChunks id (boardWidth b) (boardCells b)
 empty,full :: Cell
 empty = Cell False
 full = Cell True
+
+clearLines :: Board -> (Int, Board)
+clearLines b = clearLines' 0 (boardWidth b) [] (boardRows b)
+
+clearLines' :: Int -> Int -> [[Cell]] -> [[Cell]] -> (Int, Board)
+clearLines' n w acc []  = (n, board (pad acc))
+  where pad acc = replicate n (replicate w empty) ++ (reverse acc)
+clearLines' n w acc (r:rs) = if allFull r
+                             then clearLines' (n+1) w acc rs
+                             else clearLines' n w (r:acc) rs
+  where allFull row = and (map cellValue row)
 
 showBoard :: Board -> String
 showBoard b = concat $ mapChunks showRow (boardWidth b) (boardCells b)

@@ -17,15 +17,15 @@ data Game = Game
   , gameBlockY :: Int
   , gameBlockRot :: Integer
   , gameTick :: Integer
-  , gameAlive :: Bool
+  , gameScore :: Int
+  , gameOver :: Bool
   , gameNewBlockNeeded :: Bool
   } deriving (Eq, Show)
 
 data InputEvent = MoveLeft | MoveRight | RotateCC | RotateC | NoInput
                   deriving (Eq,Show)
-w = 10
-h = 20
-speed = 5
+w = 12
+h = 17
 
 inputEvent :: Maybe Char -> InputEvent
 inputEvent (Just 'h') = MoveLeft
@@ -34,15 +34,16 @@ inputEvent (Just 'j') = RotateCC
 inputEvent (Just 'k') = RotateC
 inputEvent _ = NoInput
 
-freshGame :: Game
-freshGame = Game
+freshGame :: Int -> Game
+freshGame randomSeed = Game
             { gameBoard = board (take h (repeat (take w (repeat empty))))
-            , gameBlock = (Block T)
+            , gameBlock = head (drop (randomSeed `mod` 13) blocks)
             , gameBlockX = 3
             , gameBlockY = 0
             , gameBlockRot = 0
             , gameTick = 1
-            , gameAlive = True
+            , gameScore = 0
+            , gameOver = False
             , gameNewBlockNeeded = False
             }
 
@@ -53,7 +54,10 @@ showGame g@Game{..} =
 
 updateGame :: Game -> InputEvent -> Game
 updateGame g@Game{..} input =
-   maybeSupplyNewBlock . maybeDropBlock . updateTick . (maybeMove input) $ g
+  maybeSupplyNewBlock
+  $ maybeDropBlock
+  $ updateTick
+  $ maybeMove input g
 
 updateTick :: Game -> Game
 updateTick g@Game{..} = g{gameTick = gameTick+1}
@@ -62,7 +66,7 @@ maybeSupplyNewBlock :: Game -> Game
 maybeSupplyNewBlock g@Game{gameNewBlockNeeded=True} =
   g{gameNewBlockNeeded=False
    ,gameBlock = pseudoRandomBlock g
-   ,gameBlockY = 1
+   ,gameBlockY = 0
    ,gameBlockX = 3
    }
 maybeSupplyNewBlock g = g
@@ -74,17 +78,34 @@ pseudoRandomBlock g@Game{..} = head (drop n blocks)
 
 maybeDropBlock :: Game -> Game
 maybeDropBlock g@Game{..} =
-  if gameTick `mod` speed == 0
+  if gameTick `mod` (dropInterval g) == 0
   then
     if not $ overlapsAt gameBoard (gameBlockX,gameBlockY + 1)
          (rotated gameBlockRot gameBlock)
     then g{gameBlockY = gameBlockY + 1}
-    else g{gameBoard = spliceBoardAt gameBoard
-                                    (gameBlockX,gameBlockY)
-                                    (rotated gameBlockRot gameBlock)
-          ,gameNewBlockNeeded = True
-          }
+    else dropBlock g
   else g
+
+dropInterval :: Game -> Integer
+dropInterval g@Game{gameScore=s} = max 1 (8 - (toInteger s))
+
+dropBlock :: Game -> Game
+dropBlock g@Game{..} =
+  let b = spliceBoardAt gameBoard (gameBlockX,gameBlockY)
+                                  (rotated gameBlockRot gameBlock)
+      (n, b') = clearLines b
+      topRowTaken = gameBlockY <= 1
+  in if topRowTaken
+     then g{gameOver = True
+           ,gameBoard = b'
+           }
+     else g{gameBoard = b'
+           ,gameNewBlockNeeded = True
+           ,gameScore = gameScore+n
+           }
+
+maybeClearLines :: Game -> Game
+maybeClearLines g@Game{..} = g{gameBoard = snd (clearLines gameBoard)}
 
 maybeMove :: InputEvent -> Game -> Game
 maybeMove MoveLeft g@Game{..} =

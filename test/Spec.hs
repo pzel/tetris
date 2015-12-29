@@ -9,6 +9,7 @@ main = do
   runTests spliceBoardAtTests
   runTests overlapsAtTests
   runTests blocksTests
+  runTests clearLinesTests
 
 (=?~) :: a -> a -> (Test a)
 (=?~) expected expression = Test expected expression
@@ -114,4 +115,15 @@ blocksTests =
          ,[empty ,full]] =?~ rotated 3 (Block T)
   ,rotated 4 (Block T) =?~ rotated 0 (Block T)
   ,rotated (-1) (Block T) =?~ rotated 3 (Block T)
+  ]
+
+clearLinesTests =
+  [
+   (1, board [[empty, empty]]) =?~ clearLines (board [[full, full]])
+  ,(1, board [[empty, empty],
+              [full, empty]]) =?~ clearLines (board [[full, empty]
+                                                    ,[full, full]])
+  ,(2, board [[empty, empty],
+              [empty, empty]]) =?~ clearLines (board [[full, full]
+                                                     ,[full, full]])
   ]

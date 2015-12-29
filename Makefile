@@ -6,6 +6,9 @@ play:
 	-@ # echo in case we're running inside a dumb terminal:
 	@$$COLORTERM -e 'stack exec tetris-exe'
 
+play-here:
+	stack exec tetris-exe
+
 ghci:
 	@$(STACK) build
 	@$(STACK) ghci
