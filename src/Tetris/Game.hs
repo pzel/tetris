@@ -13,10 +13,10 @@ import Tetris.Board
 
 data Game = Game
   { gameBoard :: Board
-  , gameBlock :: Board
+  , gameBlock :: Block
   , gameBlockX :: Int
   , gameBlockY :: Int
-  , gameBlockRot :: Int
+  , gameBlockRot :: Integer
   , gameTick :: Integer
   , gameAlive :: Bool
   } deriving (Eq, Show)
@@ -26,20 +26,22 @@ data InputEvent = MoveLeft | MoveRight
                 | NoInput
                   deriving (Eq,Show)
 
-w = 5
-h = 10
+w = 10
+h = 20
 speed = 5
 
 inputEvent :: Maybe Char -> InputEvent
 inputEvent (Just 'h') = MoveLeft
 inputEvent (Just 'l') = MoveRight
+inputEvent (Just 'j') = RotateCC
+inputEvent (Just 'k') = RotateC
 inputEvent _ = NoInput
 
 freshGame :: Game
 freshGame = Game
             { gameBoard = board (take h (repeat (take w (repeat empty))))
-            , gameBlock = singleBlock
-            , gameBlockX = 4
+            , gameBlock = (Block T)
+            , gameBlockX = 1
             , gameBlockY = 0
             , gameBlockRot = 0
             , gameTick = 1
@@ -47,14 +49,12 @@ freshGame = Game
 
 showGame :: Game -> String
 showGame g@Game{..} =
-  showBoard $ spliceBoardAt gameBoard (gameBlockX, gameBlockY) singleBlock
+  showBoard $ spliceBoardAt gameBoard (gameBlockX, gameBlockY)
+              (rotated gameBlockRot gameBlock)
 
 updateGame :: Game -> InputEvent -> Game
 updateGame g@Game{..} input =
    maybeDropBlock . updateTick . (maybeMove input) $ g
-
-singleBlock :: Board
-singleBlock = board [[full]]
 
 updateTick :: Game -> Game
 updateTick g@Game{..} = g{gameTick = gameTick+1}
@@ -63,11 +63,12 @@ maybeDropBlock :: Game -> Game
 maybeDropBlock g@Game{..} =
   if gameTick `mod` speed == 0
   then
-    if not $ overlapsAt gameBoard (gameBlockX,gameBlockY + 1) gameBlock
+    if not $ overlapsAt gameBoard (gameBlockX,gameBlockY + 1)
+         (rotated gameBlockRot gameBlock)
     then g{gameBlockY = gameBlockY + 1}
     else g{gameBoard = spliceBoardAt gameBoard
                                     (gameBlockX,gameBlockY)
-                                    gameBlock
+                                    (rotated gameBlockRot gameBlock)
           ,gameBlockY = 0
           }
   else g
@@ -75,10 +76,20 @@ maybeDropBlock g@Game{..} =
 maybeMove :: InputEvent -> Game -> Game
 maybeMove MoveLeft g@Game{..} =
   let newX = gameBlockX-1
-  in onLegalMove g (newX,gameBlockY) gameBlock g{gameBlockX = newX}
+      rb = rotated gameBlockRot gameBlock
+  in onLegalMove g (newX,gameBlockY) rb g{gameBlockX = newX}
 maybeMove MoveRight g@Game{..} =
   let newX = gameBlockX+1
-  in onLegalMove g (newX,gameBlockY) gameBlock g{gameBlockX = newX}
+      rb = rotated gameBlockRot gameBlock
+  in onLegalMove g (newX,gameBlockY) rb g{gameBlockX = newX}
+maybeMove RotateCC g@Game{..} =
+  let newRot = gameBlockRot+1
+      rb = rotated newRot gameBlock
+  in onLegalMove g (gameBlockX,gameBlockY) rb g{gameBlockRot = newRot}
+maybeMove RotateC g@Game{..} =
+  let newRot = gameBlockRot-1
+      rb = rotated newRot gameBlock
+  in onLegalMove g (gameBlockX,gameBlockY) rb g{gameBlockRot = newRot}
 maybeMove _ g = g
 
 onLegalMove :: Game -> (Int, Int) -> Board -> Game -> Game

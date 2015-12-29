@@ -5,7 +5,6 @@ import Control.Concurrent (forkIO, threadDelay)
 import Control.Concurrent.STM
 import Data.Char (chr)
 import System.IO
-import Tetris
 import Tetris.Game
 
 main :: IO ()

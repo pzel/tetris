@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 module Tetris.Board
   (Board(..)
+  ,Block(..)
+  ,BlockType(..)
   ,Cell
   ,board
   ,empty
@@ -8,14 +10,43 @@ module Tetris.Board
   ,overlapsAt
   ,showBoard
   ,spliceBoardAt
+  ,rotated
   ) where
 
+data Block = Block BlockType deriving (Eq,Show)
+data BlockType = I | J | L | O | S | T | Z deriving (Eq,Ord,Show)
 data Board = Board { boardCells :: [Cell]
                    , boardHeight :: Int
                    , boardWidth :: Int
                    } deriving (Eq,Show)
 
 newtype Cell = Cell { cellValue :: Bool } deriving (Eq,Show)
+
+rotated :: Integer -> Block -> Board
+rotated n b = composeN (normalize n) rotateOnce (toBoard b) where
+  normalize :: (Integral a) => a -> Int
+  normalize n = ((fromIntegral n `mod` 4) + 4) `mod` 4
+
+rotateOnce :: Board -> Board
+rotateOnce b = board (rotateCells (boardRows b))
+
+rotateCells :: [[Cell]] -> [[Cell]]
+rotateCells cs =
+  if [] `elem` cs then [] else map last cs : rotateCells (map init cs)
+
+composeN :: Int -> (a -> a) -> (a -> a)
+composeN n fun = foldr (.) id (replicate n fun)
+
+toBoard :: Block -> Board
+toBoard (Block b) = board (toCells b)
+  where
+    toCells I = [[full], [full], [full], [full]]
+    toCells J = [[empty,full], [empty,full], [full,full]]
+    toCells L = [[full,empty], [full,empty], [full,full]]
+    toCells O = [[full,full], [full,full]]
+    toCells S = [[empty, full, full], [full, full, empty]]
+    toCells T = [[full,full,full], [empty,full,empty]]
+    toCells Z = [[full, full, empty], [empty, full, full]]
 
 board :: [[Cell]] -> Board
 board cs = Board { boardCells = concat cs
