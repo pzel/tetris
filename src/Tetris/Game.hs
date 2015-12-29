@@ -22,7 +22,7 @@ data Game = Game
   , gameNewBlockNeeded :: Bool
   } deriving (Eq, Show)
 
-data InputEvent = MoveLeft | MoveRight | RotateCC | RotateC | NoInput
+data InputEvent = MoveLeft | MoveRight | RotateCC | RotateC | Drop | NoInput
                   deriving (Eq,Show)
 w = 12
 h = 17
@@ -32,6 +32,7 @@ inputEvent (Just 'h') = MoveLeft
 inputEvent (Just 'l') = MoveRight
 inputEvent (Just 'j') = RotateCC
 inputEvent (Just 'k') = RotateC
+inputEvent (Just ' ') = Drop
 inputEvent _ = NoInput
 
 freshGame :: Int -> Game
@@ -87,7 +88,7 @@ maybeDropBlock g@Game{..} =
   else g
 
 dropInterval :: Game -> Integer
-dropInterval g@Game{gameScore=s} = max 1 (8 - (toInteger s))
+dropInterval g@Game{gameScore=s} = max 1 (8 - (toInteger s `mod` 2))
 
 dropBlock :: Game -> Game
 dropBlock g@Game{..} =
@@ -124,6 +125,10 @@ maybeMove RotateC g@Game{..} =
   let newRot = gameBlockRot-1
       rb = rotated newRot gameBlock
   in onLegalMove g (gameBlockX,gameBlockY) rb g{gameBlockRot = newRot}
+maybeMove Drop g@Game{..} =
+  let newY = gameBlockY + 1
+      rb = rotated gameBlockRot gameBlock
+  in onLegalMove g (gameBlockX,newY) rb (maybeMove Drop g{gameBlockY=newY})
 maybeMove _ g = g
 
 onLegalMove :: Game -> (Int, Int) -> Board -> Game -> Game
