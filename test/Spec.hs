@@ -1,30 +1,60 @@
-import Tetris
+import Tetris.Board
 import Control.Monad (mapM_)
-type Test t = (t,t)
+data Test t = T t t deriving (Eq, Show)
 
 main :: IO ()
 main = do
-  runTests rotationTests
+  runTests showBoardTests
+  runTests spliceBoardAtTests
 
-runTests :: (Eq a, Show a) => [(a,a)] -> IO ()
-runTests = mapM_ (\(expect, expr)-> assert expect expr)
+(=?~) :: a -> a -> (Test a)
+(=?~) expected expression = T expected expression
+infixl 7 =?~
+
+runTests :: (Eq a, Show a) => [Test a] -> IO ()
+runTests = mapM_ (\(T expect expr)-> assert expect expr)
   where
     assert :: (Eq a, Show a) => a -> a -> IO ()
     assert expected got = if expected == got
                           then return ()
                           else error ("\nexpected: " ++ (show expected) ++
                                       "\ngot     : " ++ (show got) ++ "\n")
-rotationTests :: [Test BlockDrawing]
-rotationTests =
+showBoardTests :: [Test String]
+showBoardTests =
   [
-   (drawBlock J, rotate 0 J)
-  ,([[On, On, On], [Of, Of, On]], rotate 1 J)
-  ,([[On, On], [On, Of], [On, Of]], rotate 2 J)
-  ,([[On, Of, Of], [On, On, On]], rotate 3 J)
-  ,(drawBlock J, rotate 4 J)
-  ,(rotate (-1) J, rotate 3 J)
-  ,(rotate (-2) J, rotate 2 J)
-  ,(rotate (-3) J, rotate 1 J)
-  ,(rotate (-4) J, rotate 0 J)
-  ,(rotate (-8) J, rotate 8 J)
+   "" =?~ showBoard (board [[]])
+  ," # \n" =?~ showBoard (board [[empty, full, empty]])
+  ," # \n  #\n"
+    =?~
+      showBoard (board [[empty, full, empty], [empty, empty, full]])
+  ]
+
+spliceBoardAtTests :: [Test Board]
+spliceBoardAtTests =
+  [
+   board [[full, empty]] =?~ spliceBoardAt (board [[empty, empty]])
+                                           (1,1)
+                                           [[full,empty]]
+  , board [[empty, empty]
+          ,[empty, full]
+          ,[empty, empty]
+          ]
+    =?~
+      spliceBoardAt (board [[empty, empty]
+                           ,[empty, empty]
+                           ,[empty, empty]
+                           ])
+                      (2,2)
+                      [[full]]
+  , board [[empty, empty, empty]
+          ,[empty, full, full]
+          ,[empty, empty, empty]
+          ]
+    =?~
+      spliceBoardAt (board [[empty, empty, empty]
+                           ,[empty, full, empty]
+                           ,[empty, empty, empty]
+                           ])
+                      (2,2)
+                       [[full,full]]
   ]

@@ -25,6 +25,7 @@ rotate :: Integer -> Block -> BlockDrawing
 rotate n b = composeN (normalize n) rotateOnce (drawBlock b) where
   normalize :: (Integral a) => a -> Int
   normalize n = ((fromIntegral n `mod` 4) + 4) `mod` 4
+
 -- Will truncate all to shortest sub-list, like zip
 rotateOnce :: (Eq a) => [[a]] -> [[a]]
 rotateOnce a = if [] `elem` a then []

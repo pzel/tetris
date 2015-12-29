@@ -35,7 +35,7 @@ mainLoop g inputSource = do
   --  if (tick g) > 1000 then error("finished with " ++ show g)
   mainLoop (updateGame i g) inputSource
 
-updateGame :: Maybe Char -> Game  -> Game
+updateGame :: Maybe Char -> Game -> Game
 updateGame i = mUpdateInput i . updateInvariant
   where
     mUpdateInput Nothing g = g
