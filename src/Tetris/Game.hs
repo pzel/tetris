@@ -9,7 +9,6 @@ module Tetris.Game
   ) where
 
 import Tetris.Board
--- import Tetris.Block (Block(..))
 
 data Game = Game
   { gameBoard :: Board
@@ -19,13 +18,11 @@ data Game = Game
   , gameBlockRot :: Integer
   , gameTick :: Integer
   , gameAlive :: Bool
+  , gameNewBlockNeeded :: Bool
   } deriving (Eq, Show)
 
-data InputEvent = MoveLeft | MoveRight
-                | RotateCC | RotateC
-                | NoInput
+data InputEvent = MoveLeft | MoveRight | RotateCC | RotateC | NoInput
                   deriving (Eq,Show)
-
 w = 10
 h = 20
 speed = 5
@@ -45,7 +42,9 @@ freshGame = Game
             , gameBlockY = 0
             , gameBlockRot = 0
             , gameTick = 1
-            , gameAlive = True }
+            , gameAlive = True
+            , gameNewBlockNeeded = False
+            }
 
 showGame :: Game -> String
 showGame g@Game{..} =
@@ -54,10 +53,17 @@ showGame g@Game{..} =
 
 updateGame :: Game -> InputEvent -> Game
 updateGame g@Game{..} input =
-   maybeDropBlock . updateTick . (maybeMove input) $ g
+   maybeSupplyNewBlock . maybeDropBlock . updateTick . (maybeMove input) $ g
 
 updateTick :: Game -> Game
 updateTick g@Game{..} = g{gameTick = gameTick+1}
+
+maybeSupplyNewBlock :: Game -> Game
+maybeSupplyNewBlock g@Game{gameNewBlockNeeded=True} = 
+  g{gameNewBlockNeeded=False
+   ,gameBlock = Block Z
+   ,gameBlockY = 1}
+maybeSupplyNewBlock g = g
 
 maybeDropBlock :: Game -> Game
 maybeDropBlock g@Game{..} =
@@ -69,7 +75,7 @@ maybeDropBlock g@Game{..} =
     else g{gameBoard = spliceBoardAt gameBoard
                                     (gameBlockX,gameBlockY)
                                     (rotated gameBlockRot gameBlock)
-          ,gameBlockY = 0
+          ,gameNewBlockNeeded = True
           }
   else g
 
