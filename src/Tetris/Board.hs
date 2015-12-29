@@ -40,13 +40,22 @@ showBoard b = concat $ mapChunks showRow (boardWidth b) (boardCells b)
 spliceBoardAt :: Board -> (Int, Int) -> Board -> Board
 spliceBoardAt b offsetXY child =
   b{boardCells = zipWith cellOr (boardCells b)
-                 (paddedTo b offsetXY child)}
+                       (paddedTo b offsetXY child)}
 
 overlapsAt :: Board -> (Int, Int) -> Board -> Bool
 overlapsAt b offsetXY child =
-  let b' = b{boardCells = zipWith cellAnd (boardCells b)
-                          (paddedTo b offsetXY child)}
-  in any (\c-> cellValue c == True) (boardCells b')
+  if isLegalOffset b offsetXY child
+  then let b' = b{boardCells = zipWith cellAnd (boardCells b)
+                            (paddedTo b offsetXY child)}
+       in any (\c-> cellValue c == True) (boardCells b')
+  else True
+
+isLegalOffset :: Board -> (Int, Int) -> Board -> Bool
+isLegalOffset b1 (x,y) b2
+  | (x < 0 || y < 0) = False
+  | (x + boardWidth b2) > (boardWidth b1) = False
+  | (y + boardHeight b2) > (boardHeight b1) = False
+  | otherwise = True
 
 paddedTo :: Board -> (Int, Int) -> Board -> [Cell]
 paddedTo parent (x,y) child =
@@ -59,8 +68,8 @@ paddedTo parent (x,y) child =
       ++ paddedChildRows
       ++ concat (repeat emptyRow)
 
-(Cell b) `cellOr` (Cell b') = if b || b' then Cell True else Cell False
-(Cell b) `cellAnd` (Cell b') = if b && b' then Cell True else Cell False
+cellOr (Cell b) (Cell b') = if b || b' then Cell True else Cell False
+cellAnd (Cell b) (Cell b') = if b && b' then Cell True else Cell False
 
 mapChunks :: ([a] -> [b]) -> Int -> [a] -> [[b]]
 mapChunks _ _ [] = []

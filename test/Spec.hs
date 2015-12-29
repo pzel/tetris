@@ -7,7 +7,7 @@ main :: IO ()
 main = do
   runTests showBoardTests
   runTests spliceBoardAtTests
-  --runTests overlapsAtTests
+  runTests overlapsAtTests
 
 (=?~) :: a -> a -> (Test a)
 (=?~) expected expression = T expected expression
@@ -72,7 +72,14 @@ spliceBoardAtTests =
 
 overlapsAtTests =
   [
-   False =?~ overlapsAt (board [[empty]]) (0,0) (board [[empty]])
+  True =?~ overlapsAt (board [[empty]]) (-1,0) (board [[full]])
+  ,True =?~ overlapsAt (board [[empty]]) (0,-1) (board [[full]])
+  ,True =?~ overlapsAt (board [[empty, empty]]) (1,0) (board [[full, full]])
+  ,True =?~ overlapsAt (board [[empty, empty]
+                              ,[empty, empty]]) (0,1)
+                        (board [[empty, full]
+                               ,[empty, full]])
+  ,False =?~ overlapsAt (board [[empty]]) (0,0) (board [[empty]])
   ,False =?~ overlapsAt (board [[full]]) (0,0) (board [[empty]])
   ,False =?~ overlapsAt (board [[full, full]
                               ,[empty, full]])
@@ -84,5 +91,8 @@ overlapsAtTests =
                               ,[full, empty, full]
                               ,[full, full, full]
                               ]) (1,1) (board [[full]])
+  ,True =?~ overlapsAt (board [[full, full, full]
+                              ,[full, empty, full]
+                              ,[full, full, full]
+                              ]) (1,2) (board [[full]])
   ]
-
