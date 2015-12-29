@@ -38,7 +38,7 @@ freshGame :: Game
 freshGame = Game
             { gameBoard = board (take h (repeat (take w (repeat empty))))
             , gameBlock = (Block T)
-            , gameBlockX = 1
+            , gameBlockX = 3
             , gameBlockY = 0
             , gameBlockRot = 0
             , gameTick = 1
@@ -59,11 +59,18 @@ updateTick :: Game -> Game
 updateTick g@Game{..} = g{gameTick = gameTick+1}
 
 maybeSupplyNewBlock :: Game -> Game
-maybeSupplyNewBlock g@Game{gameNewBlockNeeded=True} = 
+maybeSupplyNewBlock g@Game{gameNewBlockNeeded=True} =
   g{gameNewBlockNeeded=False
-   ,gameBlock = Block Z
-   ,gameBlockY = 1}
+   ,gameBlock = pseudoRandomBlock g
+   ,gameBlockY = 1
+   ,gameBlockX = 3
+   }
 maybeSupplyNewBlock g = g
+
+pseudoRandomBlock :: Game -> Block
+pseudoRandomBlock g@Game{..} = head (drop n blocks)
+  where
+    n = (fromInteger gameTick) + (fromInteger gameBlockRot) + gameBlockX
 
 maybeDropBlock :: Game -> Game
 maybeDropBlock g@Game{..} =

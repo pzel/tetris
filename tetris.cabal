@@ -17,8 +17,6 @@ library
   hs-source-dirs:      src
   exposed-modules:     Tetris, Tetris.Board, Tetris.Game
   build-depends:       base >= 4.7 && < 5
-                     , array
-                     , process
                      , stm
   default-language:    Haskell2010
 
@@ -28,7 +26,6 @@ executable tetris-exe
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , tetris
-                     , process
                      , stm
   default-language:    Haskell2010
 
@@ -38,9 +35,7 @@ test-suite tetris-test
   other-modules:       Tetris.Board
   main-is:             Spec.hs
   build-depends:       base
-                     , array
                      , tetris
-                     , process
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

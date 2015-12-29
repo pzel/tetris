@@ -5,6 +5,7 @@ module Tetris.Board
   ,BlockType(..)
   ,Cell
   ,board
+  ,blocks
   ,empty
   ,full
   ,overlapsAt
@@ -13,14 +14,19 @@ module Tetris.Board
   ,rotated
   ) where
 
+import Data.List (cycle)
+
 data Block = Block BlockType deriving (Eq,Show)
-data BlockType = I | J | L | O | S | T | Z deriving (Eq,Ord,Show)
+data BlockType = I | J | L | O | S | T | Z deriving (Enum,Eq,Ord,Show)
 data Board = Board { boardCells :: [Cell]
                    , boardHeight :: Int
                    , boardWidth :: Int
                    } deriving (Eq,Show)
 
 newtype Cell = Cell { cellValue :: Bool } deriving (Eq,Show)
+
+blocks :: [Block]
+blocks = map Block (cycle (enumFrom I))
 
 rotated :: Integer -> Block -> Board
 rotated n b = composeN (normalize n) rotateOnce (toBoard b) where
