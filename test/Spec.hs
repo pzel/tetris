@@ -1,15 +1,18 @@
 import Tetris.Board
 import Control.Monad (mapM_)
+import Data.List (sort)
 data Test t = T t t deriving (Eq, Show)
 
 main :: IO ()
 main = do
   runTests showBoardTests
+  runTests offsetTests
   runTests spliceBoardAtTests
+
 
 (=?~) :: a -> a -> (Test a)
 (=?~) expected expression = T expected expression
-infixl 7 =?~
+infixr 9 =?~
 
 runTests :: (Eq a, Show a) => [Test a] -> IO ()
 runTests = mapM_ (\(T expect expr)-> assert expect expr)
@@ -27,6 +30,21 @@ showBoardTests =
   ," # \n  #\n"
     =?~
       showBoard (board [[empty, full, empty], [empty, empty, full]])
+  ," ##\n # \n#  \n"
+    =?~
+      showBoard (board [[empty, full, full]
+                       ,[empty, full, empty]
+                       ,[full, empty, empty]
+                       ])
+  ]
+
+offsetTests :: [Test [((Int,Int),Char)]]
+offsetTests =
+  [
+   [((1,1), 'a')] =?~ offsetPairs (1,1) [['a']]
+  ,[((1,1), 'a'), ((1,2), 'b')] =?~ offsetPairs (1,1) [['a','b']]
+  ,[((1,1), 'a'), ((1,2), 'b'),((2,1),'c'),((2,2),'d')]
+    =?~ sort (offsetPairs (1,1) [['a','b'],['c','d']])
   ]
 
 spliceBoardAtTests :: [Test Board]
@@ -48,7 +66,7 @@ spliceBoardAtTests =
                       [[full]]
   , board [[empty, empty, empty]
           ,[empty, full, full]
-          ,[empty, empty, empty]
+          ,[empty, full, empty]
           ]
     =?~
       spliceBoardAt (board [[empty, empty, empty]
@@ -56,5 +74,7 @@ spliceBoardAtTests =
                            ,[empty, empty, empty]
                            ])
                       (2,2)
-                       [[full,full]]
+                       [[full,full]
+                       ,[full,empty]
+                       ]
   ]

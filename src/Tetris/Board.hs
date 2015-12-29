@@ -4,6 +4,7 @@ module Tetris.Board
   ,board
   ,empty
   ,full
+  ,offsetPairs
   ,showBoard
   ,spliceBoardAt
   ) where
@@ -34,7 +35,7 @@ showBoard b = mapChunks showRow (rowLength b) (allCells b)
 
 spliceBoardAt :: Board -> (Int, Int) -> [[Cell]] -> Board
 spliceBoardAt parent offsetXY child =
-  Board $ (boardCells parent) // (offsetPairs offsetXY child)
+  Board $ (boardCells parent) // offsetPairs offsetXY child
 
 mapChunks :: ([a] -> [b]) -> Int -> [a] -> [b]
 mapChunks _ _ [] = []
@@ -44,7 +45,5 @@ mapChunks f n l = f front ++ mapChunks f n back
 offsetPairs :: (Int, Int) -> [[a]] -> [((Int, Int), a)]
 offsetPairs (offsetX,offsetY) l =
   let (width,height) = (length (head l), length l)
-      all = concat l
-  in [((y+offsetY, x+offsetX), all !! (x+y))
+  in [((y+offsetY, x+offsetX), (l !! y) !! x)
       | x <- [0..width-1], y <- [0..height-1]]
-
