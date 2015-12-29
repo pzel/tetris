@@ -1,49 +1,68 @@
+{-# LANGUAGE RecordWildCards #-}
 module Tetris.Board
   (Board(..)
   ,Cell
   ,board
   ,empty
   ,full
-  ,offsetPairs
+  ,overlapsAt
   ,showBoard
   ,spliceBoardAt
   ) where
 
-import Data.Array.IArray (Array, (//), bounds, elems, listArray)
-import Data.List ((!!), splitAt)
+data Board = Board { boardCells :: [Cell]
+                   , boardHeight :: Int
+                   , boardWidth :: Int
+                   } deriving (Eq,Show)
 
-newtype Board = Board { boardCells :: Array (Int,Int) Cell } deriving (Eq,Show)
-data Cell = Full | Empty deriving (Eq,Show)
+newtype Cell = Cell { cellValue :: Bool } deriving (Eq,Show)
 
 board :: [[Cell]] -> Board
-board cs = Board $ listArray ((1,1),(height,width)) (concat cs)
-  where width = length (head cs)
-        height = length cs
+board cs = Board { boardCells = concat cs
+                 , boardHeight = length cs
+                 , boardWidth = length (head cs)
+                 }
+
+boardRows :: Board -> [[Cell]]
+boardRows b = mapChunks id (boardWidth b) (boardCells b)
 
 empty,full :: Cell
-empty = Empty
-full = Full
+empty = Cell False
+full = Cell True
 
 showBoard :: Board -> String
-showBoard b = mapChunks showRow (rowLength b) (allCells b)
+showBoard b = concat $ mapChunks showRow (boardWidth b) (boardCells b)
   where
-    allCells = elems . boardCells
-    rowLength = snd . snd . bounds . boardCells
     showRow cs = map showCell cs ++ "\n"
-    showCell Full = '#'
-    showCell Empty = ' '
+    showCell (Cell True) = '#'
+    showCell (Cell False) = '.'
 
-spliceBoardAt :: Board -> (Int, Int) -> [[Cell]] -> Board
-spliceBoardAt parent offsetXY child =
-  Board $ (boardCells parent) // offsetPairs offsetXY child
+spliceBoardAt :: Board -> (Int, Int) -> Board -> Board
+spliceBoardAt b offsetXY child =
+  b{boardCells = zipWith cellOr (boardCells b)
+                 (paddedTo b offsetXY child)}
 
-mapChunks :: ([a] -> [b]) -> Int -> [a] -> [b]
+overlapsAt :: Board -> (Int, Int) -> Board -> Bool
+overlapsAt b offsetXY child =
+  let b' = b{boardCells = zipWith cellAnd (boardCells b)
+                          (paddedTo b offsetXY child)}
+  in any (\c-> cellValue c == True) (boardCells b')
+
+paddedTo :: Board -> (Int, Int) -> Board -> [Cell]
+paddedTo parent (x,y) child =
+ let rowWidth = boardWidth parent
+     emptyRow = take rowWidth (repeat empty)
+     paddingFront = take x (repeat empty)
+     padRow r = take rowWidth (paddingFront ++ r ++ (repeat empty))
+     paddedChildRows = concatMap padRow (boardRows child)
+ in concat (take y (repeat emptyRow))
+      ++ paddedChildRows
+      ++ concat (repeat emptyRow)
+
+(Cell b) `cellOr` (Cell b') = if b || b' then Cell True else Cell False
+(Cell b) `cellAnd` (Cell b') = if b && b' then Cell True else Cell False
+
+mapChunks :: ([a] -> [b]) -> Int -> [a] -> [[b]]
 mapChunks _ _ [] = []
-mapChunks f n l = f front ++ mapChunks f n back
+mapChunks f n l = f front : mapChunks f n back
   where (front, back) = splitAt n l
-
-offsetPairs :: (Int, Int) -> [[a]] -> [((Int, Int), a)]
-offsetPairs (offsetX,offsetY) l =
-  let (width,height) = (length (head l), length l)
-  in [((y+offsetY, x+offsetX), (l !! y) !! x)
-      | x <- [0..width-1], y <- [0..height-1]]

@@ -6,9 +6,8 @@ data Test t = T t t deriving (Eq, Show)
 main :: IO ()
 main = do
   runTests showBoardTests
-  runTests offsetTests
   runTests spliceBoardAtTests
-
+  --runTests overlapsAtTests
 
 (=?~) :: a -> a -> (Test a)
 (=?~) expected expression = T expected expression
@@ -22,15 +21,16 @@ runTests = mapM_ (\(T expect expr)-> assert expect expr)
                           then return ()
                           else error ("\nexpected: " ++ (show expected) ++
                                       "\ngot     : " ++ (show got) ++ "\n")
+
 showBoardTests :: [Test String]
 showBoardTests =
   [
    "" =?~ showBoard (board [[]])
-  ," # \n" =?~ showBoard (board [[empty, full, empty]])
-  ," # \n  #\n"
+  ,".#.\n" =?~ showBoard (board [[empty, full, empty]])
+  ,".#.\n..#\n"
     =?~
       showBoard (board [[empty, full, empty], [empty, empty, full]])
-  ," ##\n # \n#  \n"
+  ,".##\n.#.\n#..\n"
     =?~
       showBoard (board [[empty, full, full]
                        ,[empty, full, empty]
@@ -38,32 +38,24 @@ showBoardTests =
                        ])
   ]
 
-offsetTests :: [Test [((Int,Int),Char)]]
-offsetTests =
-  [
-   [((1,1), 'a')] =?~ offsetPairs (1,1) [['a']]
-  ,[((1,1), 'a'), ((1,2), 'b')] =?~ offsetPairs (1,1) [['a','b']]
-  ,[((1,1), 'a'), ((1,2), 'b'),((2,1),'c'),((2,2),'d')]
-    =?~ sort (offsetPairs (1,1) [['a','b'],['c','d']])
-  ]
-
 spliceBoardAtTests :: [Test Board]
 spliceBoardAtTests =
   [
    board [[full, empty]] =?~ spliceBoardAt (board [[empty, empty]])
-                                           (1,1)
-                                           [[full,empty]]
+                                           (0,0)
+                                           (board [[full,empty]])
+  , board [[full, full]] =?~ spliceBoardAt (board [[empty, full]])
+                                           (0,0)
+                                           (board [[full, empty]])
   , board [[empty, empty]
           ,[empty, full]
-          ,[empty, empty]
-          ]
-    =?~
-      spliceBoardAt (board [[empty, empty]
-                           ,[empty, empty]
-                           ,[empty, empty]
-                           ])
-                      (2,2)
-                      [[full]]
+          ,[empty, empty]]
+    =?~ spliceBoardAt (board [[empty, empty]
+                             ,[empty, empty]
+                             ,[empty, empty]
+                             ])
+                             (1,1)
+                             (board [[full]])
   , board [[empty, empty, empty]
           ,[empty, full, full]
           ,[empty, full, empty]
@@ -73,8 +65,24 @@ spliceBoardAtTests =
                            ,[empty, full, empty]
                            ,[empty, empty, empty]
                            ])
-                      (2,2)
-                       [[full,full]
-                       ,[full,empty]
-                       ]
+                      (1,1)
+                       (board [[full,full]
+                              ,[full,empty]])
   ]
+
+overlapsAtTests =
+  [
+   False =?~ overlapsAt (board [[empty]]) (0,0) (board [[empty]])
+  ,False =?~ overlapsAt (board [[full]]) (0,0) (board [[empty]])
+  ,False =?~ overlapsAt (board [[full, full]
+                              ,[empty, full]])
+                               (0,0)
+                               (board [[empty, empty]
+                                      ,[full, empty]])
+  ,True =?~ overlapsAt (board [[full]]) (0,0) (board [[full]])
+  ,False =?~ overlapsAt (board [[full, full, full]
+                              ,[full, empty, full]
+                              ,[full, full, full]
+                              ]) (1,1) (board [[full]])
+  ]
+
