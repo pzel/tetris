@@ -83,7 +83,7 @@ showBoard :: Board -> String
 showBoard b = concat $ mapChunks showRow (boardWidth b) (boardCells b)
   where
     showRow cs = map showCell cs ++ "\n"
-    showCell (Cell True) = '#'
+    showCell (Cell True) = '\9608'
     showCell (Cell False) = '.'
 
 spliceBoardAt :: Board -> (Int, Int) -> Board -> Board

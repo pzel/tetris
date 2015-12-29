@@ -55,27 +55,23 @@ showGame g@Game{..} =
 
 updateGame :: Game -> InputEvent -> Game
 updateGame g@Game{..} input =
-  maybeSupplyNewBlock
-  $ maybeDropBlock
-  $ updateTick
-  $ maybeMove input g
+  foldr ($) g
+          [maybeSupplyNewBlock
+          ,maybeDropBlock
+          ,updateTick
+          ,maybeMove input]
 
 updateTick :: Game -> Game
 updateTick g@Game{..} = g{gameTick = gameTick+1}
 
 maybeSupplyNewBlock :: Game -> Game
 maybeSupplyNewBlock g@Game{gameNewBlockNeeded=True} =
-  g{gameNewBlockNeeded=False
-   ,gameBlock = pseudoRandomBlock g
-   ,gameBlockY = 0
-   ,gameBlockX = 3
-   }
+  g{gameNewBlockNeeded=False, gameBlock=nextBlock g, gameBlockY=0, gameBlockX=3}
 maybeSupplyNewBlock g = g
 
-pseudoRandomBlock :: Game -> Block
-pseudoRandomBlock g@Game{..} = head (drop n blocks)
-  where
-    n = (fromInteger gameTick) + (fromInteger gameBlockRot) + gameBlockX
+nextBlock :: Game -> Block
+nextBlock g@Game{..} = head (drop n blocks)
+  where n = (fromInteger gameTick) + (fromInteger gameBlockRot) + gameBlockX
 
 maybeDropBlock :: Game -> Game
 maybeDropBlock g@Game{..} =
@@ -97,13 +93,8 @@ dropBlock g@Game{..} =
       (n, b') = clearLines b
       topRowTaken = gameBlockY <= 1
   in if topRowTaken
-     then g{gameOver = True
-           ,gameBoard = b'
-           }
-     else g{gameBoard = b'
-           ,gameNewBlockNeeded = True
-           ,gameScore = gameScore+n
-           }
+     then g{gameOver=True, gameBoard = b'}
+     else g{gameBoard=b', gameNewBlockNeeded=True, gameScore=gameScore+n}
 
 maybeClearLines :: Game -> Game
 maybeClearLines g@Game{..} = g{gameBoard = snd (clearLines gameBoard)}
