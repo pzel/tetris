@@ -21,7 +21,7 @@ main = do
 mainLoop :: Game -> TVar (Maybe Char) -> IO ()
 mainLoop g@Game{gameOver=False} inputSource = do
   drawGame g
-  threadDelay $ round $ (1000/12.0) * 1000
+  threadDelay $ (1000 `div` 12) * 1000
   i <- getPlayerInput inputSource
   mainLoop (updateGame g (inputEvent i)) inputSource
 mainLoop g@Game{gameScore=s} _ = do

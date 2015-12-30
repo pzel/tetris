@@ -24,9 +24,6 @@ data Game = Game
 
 data InputEvent = MoveLeft | MoveRight | RotateCC | RotateC | Drop | NoInput
                   deriving (Eq,Show)
-w = 12
-h = 17
-
 inputEvent :: Maybe Char -> InputEvent
 inputEvent (Just 'h') = MoveLeft
 inputEvent (Just 'l') = MoveRight
@@ -36,17 +33,17 @@ inputEvent (Just ' ') = Drop
 inputEvent _ = NoInput
 
 freshGame :: Int -> Game
-freshGame randomSeed = Game
-            { gameBoard = board (take h (repeat (take w (repeat empty))))
-            , gameBlock = head (drop (randomSeed `mod` 13) blocks)
-            , gameBlockX = 3
-            , gameBlockY = 0
-            , gameBlockRot = 0
-            , gameTick = 1
-            , gameScore = 0
-            , gameOver = False
-            , gameNewBlockNeeded = False
-            }
+freshGame randomSeed =
+  Game { gameBoard = defaultBoard
+       , gameBlock = head (drop (randomSeed `mod` 7) blocks)
+       , gameBlockX = 3, gameBlockY = 0
+       , gameBlockRot = 0, gameTick = 1
+       , gameScore = 0, gameOver = False
+       , gameNewBlockNeeded = False}
+    where cells = repeat empty
+          rows = repeat (take defaultWidth cells)
+          defaultBoard = board $ take defaultHeight rows
+          (defaultWidth, defaultHeight) = (10,20)
 
 showGame :: Game -> String
 showGame g@Game{..} =
@@ -54,40 +51,35 @@ showGame g@Game{..} =
               (rotated gameBlockRot gameBlock)
 
 updateGame :: Game -> InputEvent -> Game
-updateGame g@Game{..} input =
-  foldr ($) g
-          [maybeSupplyNewBlock
-          ,maybeDropBlock
-          ,updateTick
-          ,maybeMove input]
+updateGame g@Game{..} ev =
+  foldr ($) g [applyInput ev, updateTick, dropBlock, supplyNewBlock]
 
 updateTick :: Game -> Game
 updateTick g@Game{..} = g{gameTick = gameTick+1}
 
-maybeSupplyNewBlock :: Game -> Game
-maybeSupplyNewBlock g@Game{gameNewBlockNeeded=True} =
-  g{gameNewBlockNeeded=False, gameBlock=nextBlock g, gameBlockY=0, gameBlockX=3}
-maybeSupplyNewBlock g = g
+supplyNewBlock :: Game -> Game
+supplyNewBlock g@Game{gameNewBlockNeeded=True} =
+  g{gameNewBlockNeeded=False, gameBlock=pickBlock g, gameBlockY=0, gameBlockX=3}
+supplyNewBlock g = g
 
-nextBlock :: Game -> Block
-nextBlock g@Game{..} = head (drop n blocks)
+pickBlock :: Game -> Block
+pickBlock g@Game{..} = head (drop n blocks)
   where n = (fromInteger gameTick) + (fromInteger gameBlockRot) + gameBlockX
 
-maybeDropBlock :: Game -> Game
-maybeDropBlock g@Game{..} =
+dropBlock :: Game -> Game
+dropBlock g@Game{..} =
   if gameTick `mod` (dropInterval g) == 0
-  then
-    if not $ overlapsAt gameBoard (gameBlockX,gameBlockY + 1)
+  then if not $ overlapsAt gameBoard (gameBlockX,gameBlockY + 1)
          (rotated gameBlockRot gameBlock)
-    then g{gameBlockY = gameBlockY + 1}
-    else dropBlock g
+       then g{gameBlockY = gameBlockY + 1}
+       else landBlock g
   else g
 
 dropInterval :: Game -> Integer
 dropInterval g@Game{gameScore=s} = max 1 (8 - (toInteger s `mod` 2))
 
-dropBlock :: Game -> Game
-dropBlock g@Game{..} =
+landBlock :: Game -> Game
+landBlock g@Game{..} =
   let b = spliceBoardAt gameBoard (gameBlockX,gameBlockY)
                                   (rotated gameBlockRot gameBlock)
       (n, b') = clearLines b
@@ -96,32 +88,18 @@ dropBlock g@Game{..} =
      then g{gameOver=True, gameBoard = b'}
      else g{gameBoard=b', gameNewBlockNeeded=True, gameScore=gameScore+n}
 
-maybeClearLines :: Game -> Game
-maybeClearLines g@Game{..} = g{gameBoard = snd (clearLines gameBoard)}
+applyInput :: InputEvent -> Game -> Game
+applyInput MoveLeft g@Game{..} = onLegalGame g{gameBlockX=gameBlockX-1} id g
+applyInput MoveRight g@Game{..} = onLegalGame g{gameBlockX=gameBlockX+1} id g
+applyInput RotateCC g@Game{..} = onLegalGame g{gameBlockRot=gameBlockRot+1} id g
+applyInput RotateC g@Game{..} = onLegalGame g{gameBlockRot=gameBlockRot-1} id g
+applyInput Drop g@Game{..} = onLegalGame g{gameBlockY=gameBlockY+1} (applyInput Drop) g
+applyInput _ g = g
 
-maybeMove :: InputEvent -> Game -> Game
-maybeMove MoveLeft g@Game{..} =
-  let newX = gameBlockX-1
-      rb = rotated gameBlockRot gameBlock
-  in onLegalMove g (newX,gameBlockY) rb g{gameBlockX = newX}
-maybeMove MoveRight g@Game{..} =
-  let newX = gameBlockX+1
-      rb = rotated gameBlockRot gameBlock
-  in onLegalMove g (newX,gameBlockY) rb g{gameBlockX = newX}
-maybeMove RotateCC g@Game{..} =
-  let newRot = gameBlockRot+1
-      rb = rotated newRot gameBlock
-  in onLegalMove g (gameBlockX,gameBlockY) rb g{gameBlockRot = newRot}
-maybeMove RotateC g@Game{..} =
-  let newRot = gameBlockRot-1
-      rb = rotated newRot gameBlock
-  in onLegalMove g (gameBlockX,gameBlockY) rb g{gameBlockRot = newRot}
-maybeMove Drop g@Game{..} =
-  let newY = gameBlockY + 1
-      rb = rotated gameBlockRot gameBlock
-  in onLegalMove g (gameBlockX,newY) rb (maybeMove Drop g{gameBlockY=newY})
-maybeMove _ g = g
+onLegalGame :: Game -> (Game -> Game) -> Game -> Game
+onLegalGame ng f def = if isLegalGame ng then f ng else def
 
-onLegalMove :: Game -> (Int, Int) -> Board -> Game -> Game
-onLegalMove g@Game{..} (x,y) nb ng =
-  if not $ overlapsAt gameBoard (x,y) nb then ng else g
+isLegalGame :: Game -> Bool
+isLegalGame g@Game{..} =
+  not $ overlapsAt gameBoard (gameBlockX,gameBlockY) (rotated gameBlockRot gameBlock)
+

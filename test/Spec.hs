@@ -28,11 +28,11 @@ showBoardTests :: [Test String]
 showBoardTests =
   [
    "" =?~ showBoard (board [[]])
-  ,".#.\n" =?~ showBoard (board [[empty, full, empty]])
-  ,".#.\n..#\n"
+  ,".█.\n" =?~ showBoard (board [[empty, full, empty]])
+  ,".█.\n..█\n"
     =?~
       showBoard (board [[empty, full, empty], [empty, empty, full]])
-  ,".##\n.#.\n#..\n"
+  ,".██\n.█.\n█..\n"
     =?~
       showBoard (board [[empty, full, full]
                        ,[empty, full, empty]
