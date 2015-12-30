@@ -1,12 +1,10 @@
-{-# LANGUAGE RecordWildCards #-}
 module Main where
 
 import Data.Char (chr)
 import System.CPUTime (getCPUTime)
 import System.IO
-import Tetris.Game
-import Tetris.Controller (InputSource, getInputEvent, startInputLoop)
-import Tetris.View (showGame)
+import Tetris (Game(..), InputSource, freshGame
+              ,getInputEvent, startInputLoop, updateGame, showGame)
 
 main :: IO ()
 main = do
@@ -19,9 +17,8 @@ main = do
                hSetEcho stdin False >> hideCursor
 
 mainLoop :: Game -> InputSource -> IO ()
-mainLoop g@Game{gameOver=False} is = do
-  drawGame g
-  getInputEvent is >>= \i -> mainLoop (updateGame g i) is
+mainLoop g@Game{gameOver=False} is =
+  drawGame g >> getInputEvent is >>= \i -> mainLoop (updateGame g i) is
 mainLoop g@Game{gameScore=s} _ =
   drawGame g >> (putStrLn $ "You cleared: " ++ (show s) ++ " lines.") >>
   showCursor

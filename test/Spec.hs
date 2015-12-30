@@ -1,4 +1,4 @@
-import Tetris.Board
+import Tetris
 import Control.Monad (mapM_)
 import Data.List (sort)
 data Test t = Test t t deriving (Eq, Show)

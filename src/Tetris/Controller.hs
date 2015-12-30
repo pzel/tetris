@@ -30,7 +30,8 @@ getInputEvent (InputSource tvar) = do
   return (inputEvent c)
 
 inputLoop :: InputSource -> IO ()
-inputLoop i@(InputSource tvar) = getChar >>= atomically . writeTVar tvar . Just >> inputLoop i
+inputLoop i@(InputSource tvar) =
+  getChar >>= atomically . writeTVar tvar . Just >> inputLoop i
 
 inputEvent :: Maybe Char -> InputEvent
 inputEvent (Just 'h') = MoveLeft
@@ -39,7 +40,6 @@ inputEvent (Just 'j') = RotateCC
 inputEvent (Just 'k') = RotateC
 inputEvent (Just ' ') = Drop
 inputEvent _ = NoInput
-
 
 tick :: IO ()
 tick = threadDelay $ (1000 `div` 12) * 1000

@@ -1,11 +1,6 @@
-{-# LANGUAGE RecordWildCards #-}
-module Tetris.Game
-  (Game(..)
-  ,freshGame
-  ,updateGame
-  ) where
+module Tetris.Model.Game (Game(..), freshGame, updateGame) where
 
-import Tetris.Board
+import Tetris.Model.Board
 import Tetris.Controller (InputEvent(..))
 
 data Game = Game

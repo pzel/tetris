@@ -1,5 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
-module Tetris.Board
+module Tetris.Model.Board
   (Board(..)
   ,Block(..)
   ,BlockType(..)
