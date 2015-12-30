@@ -1,7 +1,7 @@
 # Tetris
 A TTY-based tetris clone, implemented in Haskell
 
-![screenshot](http://i.imgur.com/OPiZNTG.png)
+![screenshot](http://i.imgur.com/3JFwmzb.png)
 
 ### Installation
 
