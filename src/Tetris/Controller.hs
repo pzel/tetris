@@ -8,7 +8,7 @@ module Tetris.Controller
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Concurrent.STM
 import Control.Monad (when)
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, maybe)
 
 data InputSource = InputSource (TVar (Maybe Char))
 data InputEvent = MoveLeft | MoveRight
@@ -34,12 +34,16 @@ inputLoop i@(InputSource tvar) =
   getChar >>= atomically . writeTVar tvar . Just >> inputLoop i
 
 inputEvent :: Maybe Char -> InputEvent
-inputEvent (Just 'h') = MoveLeft
-inputEvent (Just 'l') = MoveRight
-inputEvent (Just 'j') = RotateCC
-inputEvent (Just 'k') = RotateC
-inputEvent (Just ' ') = Drop
-inputEvent _ = NoInput
+inputEvent = maybe NoInput charToInput
+
+charToInput :: Char -> InputEvent
+charToInput c
+  | c `elem` "ah" = MoveLeft
+  | c `elem` "dl" = MoveRight
+  | c `elem` "sj" = RotateCC
+  | c `elem` "wk" = RotateC
+  | c == ' '      = Drop
+  | otherwise     = NoInput
 
 tick :: IO ()
 tick = threadDelay $ (1000 `div` 12) * 1000

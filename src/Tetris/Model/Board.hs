@@ -15,6 +15,7 @@ module Tetris.Model.Board
   ) where
 
 import Data.List (cycle)
+import Data.Function (on)
 
 data Block = Block BlockType deriving (Eq,Show)
 data BlockType = I | J | L | O | S | T | Z deriving (Enum,Eq,Ord,Show)
@@ -116,8 +117,8 @@ paddedTo parent (x,y) child =
       ++ paddedChildRows
       ++ concat (repeat emptyRow)
 
-cellOr (Cell b) (Cell b') = if b || b' then Cell True else Cell False
-cellAnd (Cell b) (Cell b') = if b && b' then Cell True else Cell False
+cellOr a b = Cell (((||) `on` cellValue) a b)
+cellAnd a b = Cell (((&&) `on` cellValue) a b)
 
 mapChunks :: ([a] -> [b]) -> Int -> [a] -> [[b]]
 mapChunks _ _ [] = []
