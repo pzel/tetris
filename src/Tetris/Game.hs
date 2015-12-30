@@ -1,14 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
 module Tetris.Game
   (Game(..)
-  ,InputEvent
   ,freshGame
-  ,inputEvent
-  ,showGame
   ,updateGame
   ) where
 
 import Tetris.Board
+import Tetris.Controller (InputEvent(..))
 
 data Game = Game
   { gameBoard :: Board
@@ -22,16 +20,6 @@ data Game = Game
   , gameNewBlockNeeded :: Bool
   } deriving (Eq, Show)
 
-data InputEvent = MoveLeft | MoveRight | RotateCC | RotateC | Drop | NoInput
-                  deriving (Eq,Show)
-inputEvent :: Maybe Char -> InputEvent
-inputEvent (Just 'h') = MoveLeft
-inputEvent (Just 'l') = MoveRight
-inputEvent (Just 'j') = RotateCC
-inputEvent (Just 'k') = RotateC
-inputEvent (Just ' ') = Drop
-inputEvent _ = NoInput
-
 freshGame :: Int -> Game
 freshGame randomSeed =
   Game { gameBoard = defaultBoard
@@ -44,11 +32,6 @@ freshGame randomSeed =
           rows = repeat (take defaultWidth cells)
           defaultBoard = board $ take defaultHeight rows
           (defaultWidth, defaultHeight) = (10,20)
-
-showGame :: Game -> String
-showGame g@Game{..} =
-  showBoard $ spliceBoardAt gameBoard (gameBlockX, gameBlockY)
-              (rotated gameBlockRot gameBlock)
 
 updateGame :: Game -> InputEvent -> Game
 updateGame g@Game{..} ev =

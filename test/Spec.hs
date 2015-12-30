@@ -5,7 +5,6 @@ data Test t = Test t t deriving (Eq, Show)
 
 main :: IO ()
 main = do
-  runTests showBoardTests
   runTests spliceBoardAtTests
   runTests overlapsAtTests
   runTests blocksTests
@@ -23,22 +22,6 @@ runTests = mapM_ (\(Test expect expr)-> assert expect expr)
                           then return ()
                           else error ("\nexpected: " ++ (show expected) ++
                                       "\ngot     : " ++ (show got) ++ "\n")
-
-showBoardTests :: [Test String]
-showBoardTests =
-  [
-   "" =?~ showBoard (board [[]])
-  ,".█.\n" =?~ showBoard (board [[empty, full, empty]])
-  ,".█.\n..█\n"
-    =?~
-      showBoard (board [[empty, full, empty], [empty, empty, full]])
-  ,".██\n.█.\n█..\n"
-    =?~
-      showBoard (board [[empty, full, full]
-                       ,[empty, full, empty]
-                       ,[full, empty, empty]
-                       ])
-  ]
 
 spliceBoardAtTests :: [Test Board]
 spliceBoardAtTests =
