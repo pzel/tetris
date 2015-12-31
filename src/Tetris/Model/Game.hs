@@ -37,7 +37,8 @@ updateTick g@Game{..} = g{gameTick = gameTick+1}
 
 supplyNewBlock :: Game -> Game
 supplyNewBlock g@Game{gameNewBlockNeeded=True} =
-  g{gameNewBlockNeeded=False, gameBlock=pickBlock g, gameBlockY=0, gameBlockX=3}
+  onLegalGame g{gameNewBlockNeeded=False, gameBlock=pickBlock g, gameBlockY=0, gameBlockX=3}
+              id g{gameOver=True}
 supplyNewBlock g = g
 
 pickBlock :: Game -> Block
@@ -45,26 +46,18 @@ pickBlock g@Game{..} = head (drop n blocks)
   where n = (fromInteger gameTick) + (fromInteger gameBlockRot) + gameBlockX
 
 dropBlock :: Game -> Game
-dropBlock g@Game{..} =
-  if gameTick `mod` (dropInterval g) == 0
-  then if not $ overlapsAt gameBoard (gameBlockX,gameBlockY + 1)
-         (rotated gameBlockRot gameBlock)
-       then g{gameBlockY = gameBlockY + 1}
-       else landBlock g
-  else g
+dropBlock g@Game{..} = if gameTick `mod` (dropInterval g) == 0
+                       then onLegalGame g{gameBlockY=gameBlockY+1} id (landBlock g)
+                       else g
 
 dropInterval :: Game -> Integer
-dropInterval g@Game{gameScore=s} = max 1 (8 - (toInteger s `mod` 2))
+dropInterval g@Game{gameScore=s} = max 2 (8 - (toInteger s `div` 3))
 
 landBlock :: Game -> Game
 landBlock g@Game{..} =
-  let b = spliceBoardAt gameBoard (gameBlockX,gameBlockY)
-                                  (rotated gameBlockRot gameBlock)
-      (n, b') = clearLines b
-      topRowTaken = gameBlockY <= 1
-  in if topRowTaken
-     then g{gameOver=True, gameBoard = b'}
-     else g{gameBoard=b', gameNewBlockNeeded=True, gameScore=gameScore+n}
+  let (n, b') = clearLines (spliceBoardAt gameBoard (gameBlockX,gameBlockY)
+                                            (rotated gameBlockRot gameBlock))
+  in g{gameBoard=b', gameNewBlockNeeded=True, gameScore=gameScore+n}
 
 applyInput :: InputEvent -> Game -> Game
 applyInput MoveLeft g@Game{..} = onLegalGame g{gameBlockX=gameBlockX-1} id g
@@ -80,4 +73,3 @@ onLegalGame ng f def = if isLegalGame ng then f ng else def
 isLegalGame :: Game -> Bool
 isLegalGame g@Game{..} =
   not $ overlapsAt gameBoard (gameBlockX,gameBlockY) (rotated gameBlockRot gameBlock)
-
