@@ -1,6 +1,5 @@
 module Tetris.Controller
-  (InputEvent(..)
-  ,InputSource
+  (InputSource
   ,getInputEvent
   ,startInputLoop
   ) where
@@ -9,12 +8,9 @@ import Control.Concurrent (forkIO, threadDelay)
 import Control.Concurrent.STM
 import Control.Monad (when)
 import Data.Maybe (isJust, maybe)
+import Tetris.Model.Game (InputEvent(..))
 
 data InputSource = InputSource (TVar (Maybe Char))
-data InputEvent = MoveLeft | MoveRight
-                | RotateCC | RotateC
-                | Drop | NoInput
-                  deriving (Eq,Show)
 
 startInputLoop :: IO InputSource
 startInputLoop = do

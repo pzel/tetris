@@ -18,7 +18,7 @@ main = do
 
 mainLoop :: Game -> InputSource -> IO ()
 mainLoop g@Game{gameOver=False} is =
-  drawGame g >> getInputEvent is >>= \i -> mainLoop (updateGame g i) is
+  drawGame g >> getInputEvent is >>= \i -> mainLoop (updateGame i g) is
 mainLoop g@Game{gameScore=s} _ =
   drawGame g >> (putStrLn $ "You cleared: " ++ (show s) ++ " lines.") >>
   showCursor

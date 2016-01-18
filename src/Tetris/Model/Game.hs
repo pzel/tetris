@@ -1,7 +1,6 @@
-module Tetris.Model.Game (Game(..), freshGame, updateGame) where
+module Tetris.Model.Game (Game(..), InputEvent(..), freshGame, updateGame) where
 
 import Tetris.Model.Board
-import Tetris.Controller (InputEvent(..))
 
 data Game = Game
   { gameBoard :: Board
@@ -14,6 +13,8 @@ data Game = Game
   , gameOver :: Bool
   , gameNewBlockNeeded :: Bool
   } deriving (Eq, Show)
+
+data InputEvent = MoveLeft | MoveRight | RotateCC | RotateC | Drop | NoInput deriving (Eq,Show)
 
 freshGame :: Int -> Game
 freshGame randomSeed =
@@ -28,9 +29,8 @@ freshGame randomSeed =
           defaultBoard = board $ take defaultHeight rows
           (defaultWidth, defaultHeight) = (10,20)
 
-updateGame :: Game -> InputEvent -> Game
-updateGame g@Game{..} ev =
-  foldr ($) g [applyInput ev, updateTick, dropBlock, supplyNewBlock]
+updateGame :: InputEvent -> Game -> Game
+updateGame ev = supplyNewBlock . dropBlock . updateTick . applyInput ev
 
 updateTick :: Game -> Game
 updateTick g@Game{..} = g{gameTick = gameTick+1}
