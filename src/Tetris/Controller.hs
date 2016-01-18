@@ -4,6 +4,7 @@ module Tetris.Controller
   ,startInputLoop
   ) where
 
+import Control.Applicative ((<$>))
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Concurrent.STM
 import Control.Monad (when)
@@ -14,7 +15,7 @@ data InputSource = InputSource (TVar (Maybe Char))
 
 startInputLoop :: IO InputSource
 startInputLoop = do
-  is <- fmap InputSource (newTVarIO Nothing)
+  is <- InputSource <$> newTVarIO Nothing
   forkIO (inputLoop is)
   return is
 
