@@ -11,15 +11,15 @@ main = do
   setupTerm
   inputSource <- startInputLoop
   seed <- fmap fromInteger getCPUTime
-  mainLoop (freshGame seed) inputSource
+  mainLoop inputSource (freshGame seed)
  where
    setupTerm = hSetBuffering stdin NoBuffering >>
                hSetEcho stdin False >> hideCursor
 
-mainLoop :: Game -> InputSource -> IO ()
-mainLoop g@Game{gameOver=False} is =
-  drawGame g >> getInputEvent is >>= \i -> mainLoop (updateGame i g) is
-mainLoop g@Game{gameScore=s} _ =
+mainLoop :: InputSource -> Game -> IO ()
+mainLoop is g@Game{gameOver=False} =
+  drawGame g >> getInputEvent is >>= mainLoop is . flip updateGame g
+mainLoop _ g@Game{gameScore=s} =
   drawGame g >> (putStrLn $ "You cleared: " ++ (show s) ++ " lines.") >>
   showCursor
 

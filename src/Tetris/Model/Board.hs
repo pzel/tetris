@@ -65,7 +65,7 @@ board cs = Board { boardCells = concat cs
 boardRows :: Board -> [[Cell]]
 boardRows b = mapChunks id (boardWidth b) (boardCells b)
 
-emptyCell,fullCell :: Cell
+emptyCell, fullCell :: Cell
 emptyCell = Cell False
 fullCell = Cell True
 
