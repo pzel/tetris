@@ -26,87 +26,91 @@ runTests = mapM_ (\(Test expect expr)-> assert expect expr)
 spliceBoardAtTests :: [Test Board]
 spliceBoardAtTests =
   [
-   board [[full, empty]] =?~ spliceBoardAt (board [[empty, empty]])
+   board [[f, e]] =?~ spliceBoardAt (board [[e, e]])
                                            (0,0)
-                                           (board [[full,empty]])
-  , board [[full, full]] =?~ spliceBoardAt (board [[empty, full]])
+                                           (board [[f,e]])
+  , board [[f, f]] =?~ spliceBoardAt (board [[e, f]])
                                            (0,0)
-                                           (board [[full, empty]])
-  , board [[empty, empty]
-          ,[empty, full]
-          ,[empty, empty]]
-    =?~ spliceBoardAt (board [[empty, empty]
-                             ,[empty, empty]
-                             ,[empty, empty]
+                                           (board [[f, e]])
+  , board [[e, e]
+          ,[e, f]
+          ,[e, e]]
+    =?~ spliceBoardAt (board [[e, e]
+                             ,[e, e]
+                             ,[e, e]
                              ])
                              (1,1)
-                             (board [[full]])
-  , board [[empty, empty, empty]
-          ,[empty, full, full]
-          ,[empty, full, empty]
+                             (board [[f]])
+  , board [[e, e, e]
+          ,[e, f, f]
+          ,[e, f, e]
           ]
     =?~
-      spliceBoardAt (board [[empty, empty, empty]
-                           ,[empty, full, empty]
-                           ,[empty, empty, empty]
+      spliceBoardAt (board [[e, e, e]
+                           ,[e, f, e]
+                           ,[e, e, e]
                            ])
                       (1,1)
-                       (board [[full,full]
-                              ,[full,empty]])
+                       (board [[f,f]
+                              ,[f,e]])
   ]
 
 overlapsAtTests =
   [
-  True =?~ overlapsAt (board [[empty]]) (-1,0) (board [[full]])
-  ,True =?~ overlapsAt (board [[empty]]) (0,-1) (board [[full]])
-  ,True =?~ overlapsAt (board [[empty, empty]]) (1,0) (board [[full, full]])
-  ,True =?~ overlapsAt (board [[empty, empty]
-                              ,[empty, empty]]) (0,1)
-                        (board [[empty, full]
-                               ,[empty, full]])
-  ,False =?~ overlapsAt (board [[empty]]) (0,0) (board [[empty]])
-  ,False =?~ overlapsAt (board [[full]]) (0,0) (board [[empty]])
-  ,False =?~ overlapsAt (board [[full, full]
-                              ,[empty, full]])
+  True =?~ overlapsAt (board [[e]]) (-1,0) (board [[f]])
+  ,True =?~ overlapsAt (board [[e]]) (0,-1) (board [[f]])
+  ,True =?~ overlapsAt (board [[e, e]]) (1,0) (board [[f, f]])
+  ,True =?~ overlapsAt (board [[e, e]
+                              ,[e, e]]) (0,1)
+                        (board [[e, f]
+                               ,[e, f]])
+  ,False =?~ overlapsAt (board [[e]]) (0,0) (board [[e]])
+  ,False =?~ overlapsAt (board [[f]]) (0,0) (board [[e]])
+  ,False =?~ overlapsAt (board [[f, f]
+                              ,[e, f]])
                                (0,0)
-                               (board [[empty, empty]
-                                      ,[full, empty]])
-  ,True =?~ overlapsAt (board [[full]]) (0,0) (board [[full]])
-  ,False =?~ overlapsAt (board [[full, full, full]
-                              ,[full, empty, full]
-                              ,[full, full, full]
-                              ]) (1,1) (board [[full]])
-  ,True =?~ overlapsAt (board [[full, full, full]
-                              ,[full, empty, full]
-                              ,[full, full, full]
-                              ]) (1,2) (board [[full]])
+                               (board [[e, e]
+                                      ,[f, e]])
+  ,True =?~ overlapsAt (board [[f]]) (0,0) (board [[f]])
+  ,False =?~ overlapsAt (board [[f, f, f]
+                              ,[f, e, f]
+                              ,[f, f, f]
+                              ]) (1,1) (board [[f]])
+  ,True =?~ overlapsAt (board [[f, f, f]
+                              ,[f, e, f]
+                              ,[f, f, f]
+                              ]) (1,2) (board [[f]])
   ]
 
 
 blocksTests =
   [
-   board [[full, full],[full,full]] =?~ rotated 0 (Block O)
-  ,board [[full, full, full]
-         ,[empty, full, empty]] =?~ rotated 0 (Block T)
-  ,board [[full, empty]
-         ,[full, full]
-         ,[full, empty]] =?~ rotated 1 (Block T)
-  ,board [[empty, full, empty]
-         ,[full, full, full]] =?~ rotated 2 (Block T)
-  ,board [[empty, full]
-         ,[full, full]
-         ,[empty ,full]] =?~ rotated 3 (Block T)
+   board [[f, f],[f,f]] =?~ rotated 0 (Block O)
+  ,board [[f, f, f]
+         ,[e, f, e]] =?~ rotated 0 (Block T)
+  ,board [[f, e]
+         ,[f, f]
+         ,[f, e]] =?~ rotated 1 (Block T)
+  ,board [[e, f, e]
+         ,[f, f, f]] =?~ rotated 2 (Block T)
+  ,board [[e, f]
+         ,[f, f]
+         ,[e ,f]] =?~ rotated 3 (Block T)
   ,rotated 4 (Block T) =?~ rotated 0 (Block T)
   ,rotated (-1) (Block T) =?~ rotated 3 (Block T)
   ]
 
 clearLinesTests =
   [
-   (1, board [[empty, empty]]) =?~ clearLines (board [[full, full]])
-  ,(1, board [[empty, empty],
-              [full, empty]]) =?~ clearLines (board [[full, empty]
-                                                    ,[full, full]])
-  ,(2, board [[empty, empty],
-              [empty, empty]]) =?~ clearLines (board [[full, full]
-                                                     ,[full, full]])
+   (1, board [[e, e]]) =?~ clearLines (board [[f, f]])
+  ,(1, board [[e, e],
+              [f, e]]) =?~ clearLines (board [[f, e]
+                                             ,[f, f]])
+  ,(2, board [[e, e],
+              [e, e]]) =?~ clearLines (board [[f, f]
+                                             ,[f, f]])
   ]
+
+
+e = emptyCell
+f = fullCell

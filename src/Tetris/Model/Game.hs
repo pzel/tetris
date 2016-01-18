@@ -24,7 +24,7 @@ freshGame randomSeed =
        , gameBlockRot = 0, gameTick = 1
        , gameScore = 0, gameOver = False
        , gameNewBlockNeeded = False}
-    where cells = repeat empty
+    where cells = repeat emptyCell
           rows = repeat (take defaultWidth cells)
           defaultBoard = board $ take defaultHeight rows
           (defaultWidth, defaultHeight) = (10,20)

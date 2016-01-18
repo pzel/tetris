@@ -6,8 +6,8 @@ module Tetris.Model.Board
   ,board
   ,blocks
   ,clearLines
-  ,empty
-  ,full
+  ,emptyCell
+  ,fullCell
   ,overlapsAt
   ,rotated
   ,spliceBoardAt
@@ -47,13 +47,14 @@ composeN n fun = foldr (.) id (replicate n fun)
 toBoard :: Block -> Board
 toBoard (Block b) = board (toCells b)
   where
-    toCells I = [[full], [full], [full], [full]]
-    toCells J = [[empty,full], [empty,full], [full,full]]
-    toCells L = [[full,empty], [full,empty], [full,full]]
-    toCells O = [[full,full], [full,full]]
-    toCells S = [[empty, full, full], [full, full, empty]]
-    toCells T = [[full,full,full], [empty,full,empty]]
-    toCells Z = [[full, full, empty], [empty, full, full]]
+    (e,f) = (emptyCell, fullCell)
+    toCells I = [[f], [f], [f], [f]]
+    toCells J = [[e,f], [e,f], [f,f]]
+    toCells L = [[f,e], [f,e], [f,f]]
+    toCells O = [[f,f], [f,f]]
+    toCells S = [[e,f,f], [f,f,e]]
+    toCells T = [[f,f,f], [e,f,e]]
+    toCells Z = [[f,f,e], [e,f,f]]
 
 board :: [[Cell]] -> Board
 board cs = Board { boardCells = concat cs
@@ -64,16 +65,16 @@ board cs = Board { boardCells = concat cs
 boardRows :: Board -> [[Cell]]
 boardRows b = mapChunks id (boardWidth b) (boardCells b)
 
-empty,full :: Cell
-empty = Cell False
-full = Cell True
+emptyCell,fullCell :: Cell
+emptyCell = Cell False
+fullCell = Cell True
 
 clearLines :: Board -> (Int, Board)
 clearLines b = clearLines' 0 (boardWidth b) [] (boardRows b)
 
 clearLines' :: Int -> Int -> [[Cell]] -> [[Cell]] -> (Int, Board)
 clearLines' n w acc []  = (n, board (pad acc))
-  where pad acc = replicate n (replicate w empty) ++ (reverse acc)
+  where pad acc = replicate n (replicate w emptyCell) ++ (reverse acc)
 clearLines' n w acc (r:rs) = if allFull r
                              then clearLines' (n+1) w acc rs
                              else clearLines' n w (r:acc) rs
@@ -102,10 +103,11 @@ isLegalOffset b1 (x,y) b2
 
 paddedTo :: Board -> (Int, Int) -> Board -> [Cell]
 paddedTo parent (x,y) child =
- let rowWidth = boardWidth parent
-     emptyRow = take rowWidth (repeat empty)
-     paddingFront = take x (repeat empty)
-     padRow r = take rowWidth (paddingFront ++ r ++ (repeat empty))
+ let emptyCells = (repeat emptyCell)
+     rowWidth = boardWidth parent
+     emptyRow = take rowWidth emptyCells
+     paddingFront = take x emptyCells
+     padRow r = take rowWidth (paddingFront ++ r ++ emptyCells)
      paddedChildRows = concatMap padRow (boardRows child)
  in concat (take y (repeat emptyRow))
       ++ paddedChildRows
