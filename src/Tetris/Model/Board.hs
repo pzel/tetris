@@ -10,12 +10,12 @@ module Tetris.Model.Board
   ,full
   ,overlapsAt
   ,rotated
-  ,showBoard
   ,spliceBoardAt
   ) where
 
 import Data.List (cycle)
 import Data.Function (on)
+import Tetris.Chunks (mapChunks)
 
 data Block = Block BlockType deriving (Eq,Show)
 data BlockType = I | J | L | O | S | T | Z deriving (Enum,Eq,Ord,Show)
@@ -79,12 +79,6 @@ clearLines' n w acc (r:rs) = if allFull r
                              else clearLines' n w (r:acc) rs
   where allFull row = and (map cellValue row)
 
-showBoard :: Board -> String
-showBoard b = concat $ mapChunks showRow (boardWidth b) (boardCells b)
-  where
-    showRow cs = map showCell cs ++ "\n"
-    showCell (Cell True) = '\9608'
-    showCell (Cell False) = '.'
 
 spliceBoardAt :: Board -> (Int, Int) -> Board -> Board
 spliceBoardAt b offsetXY child =
@@ -119,8 +113,3 @@ paddedTo parent (x,y) child =
 
 cellOr a b = Cell (((||) `on` cellValue) a b)
 cellAnd a b = Cell (((&&) `on` cellValue) a b)
-
-mapChunks :: ([a] -> [b]) -> Int -> [a] -> [[b]]
-mapChunks _ _ [] = []
-mapChunks f n l = f front : mapChunks f n back
-  where (front, back) = splitAt n l

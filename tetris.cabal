@@ -18,7 +18,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Tetris
                      , Tetris.Model.Board, Tetris.Model.Game
-                     , Tetris.Controller, Tetris.View
+                     , Tetris.Controller, Tetris.View, Tetris.Chunks
   build-depends:       base >= 4.7 && < 5
                      , stm
   default-extensions:  RecordWildCards
@@ -38,7 +38,7 @@ test-suite tetris-test
   hs-source-dirs:      test, src
   other-modules:       Tetris
                      , Tetris.Model.Board, Tetris.Model.Game
-                     , Tetris.Controller, Tetris.View
+                     , Tetris.Controller, Tetris.View, Tetris.Chunks
   main-is:             Spec.hs
   build-depends:       base
                      , tetris
