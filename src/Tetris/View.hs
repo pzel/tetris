@@ -12,5 +12,5 @@ showGame g@Game{..} =
 showBoard :: Board -> String
 showBoard b@Board{..} = concat $ mapChunks showRow boardWidth boardCells
   where
-    showRow cs = map showCell cs ++ "\n"
-    showCell c = if c == fullCell then  '\9608' else '.'
+    showRow cs = concatMap showCell cs ++ "\n"
+    showCell c = if c == fullCell then  "\9608\9608" else "・"
